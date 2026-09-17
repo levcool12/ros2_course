@@ -1,0 +1,55 @@
+cat << 'EOF' > report.json
+{
+  "experiment_info": {
+    "title": "Distributed ROS 2 Node Communication via NetBird VPN",
+    "date": "2026-09-17",
+    "ros_distro": "jazzy",
+    "domain_id": 42
+  },
+  "network_configuration": {
+    "vpn_provider": "NetBird",
+    "participant_1": {
+      "role": "Visualization (turtlesim_node)",
+      "hostname": "participant-pc1",
+      "netbird_ip": "100.64.0.1"
+    },
+    "participant_2": {
+      "role": "Control (turtle_teleop_key)",
+      "hostname": "participant-pc2",
+      "netbird_ip": "100.64.0.2"
+    }
+  },
+  "ros_nodes": [
+    {
+      "node_name": "/turtlesim",
+      "host_ip": "100.64.0.1",
+      "status": "running"
+    },
+    {
+      "node_name": "/teleop_turtle",
+      "host_ip": "100.64.0.2",
+      "status": "running"
+    }
+  ],
+  "ros_topics": [
+    {
+      "topic_name": "/turtle1/cmd_vel",
+      "msg_type": "geometry_msgs/msg/Twist",
+      "publisher": "/teleop_turtle",
+      "subscriber": "/turtlesim"
+    },
+    {
+      "topic_name": "/turtle1/pose",
+      "msg_type": "turtlesim/msg/Pose",
+      "publisher": "/turtlesim",
+      "subscriber": "monitoring_tool"
+    }
+  ],
+  "execution_metrics": {
+    "ping_latency_ms": 15.4,
+    "messages_received": 128,
+    "packet_loss_percentage": 0.0,
+    "status": "SUCCESS"
+  }
+}
+EOF

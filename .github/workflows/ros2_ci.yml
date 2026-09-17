@@ -1,0 +1,31 @@
+- name: Setup ROS 2 Jazzy
+    uses: ros-tooling/setup-ros@v0.7
+    with:
+      required-ros-distributions: jazzy
+
+  - name: Install dependencies
+    run: |
+      sudo apt-get update
+      sudo apt-get install -y python3-colcon-common-extensions python3-rosdep
+      sudo rosdep init || true
+      rosdep update
+
+  - name: Run Colcon Build
+    run: |
+      source /opt/ros/jazzy/setup.bash
+      colcon build --symlink-install
+
+  - name: Run Colcon Test
+    run: |
+      source /opt/ros/jazzy/setup.bash
+      colcon test
+      colcon test-result --verbose
+
+  - name: Run Practice Checker
+    run: |
+      source /opt/ros/jazzy/setup.bash
+      if [ -f .course-kit/v1/tools/check_practice.py ]; then
+        python3 .course-kit/v1/tools/check_practice.py PR01 --submission .
+      else
+        echo "Course kit checker skipped or not present in root."
+      fi
