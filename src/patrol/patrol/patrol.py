@@ -1,21 +1,48 @@
+import math
+
 from geometry_msgs.msg import Twist
 import rclpy
 from rclpy.node import Node
+from rcl_interfaces.msg import SetParametersResult
 from turtlesim.msg import Pose
 
 
-def compute_command(pose):
-    """
-    Чистая функция: по последней позе возвращает Twist.
+PARAM_RANGES = {
+    'linear_speed': (0.0, 1.0),
+    'turn_rate': (-1.0, 1.0),
+    'publish_hz': (1.0, 30.0),
+}
 
-    Если pose is None — нулевая команда.
+
+def validate_param(name, value):
+    """
+    Check whether a parameter value is admissible.
+
+    Returns (ok, reason).
+    """
+    if name not in PARAM_RANGES:
+        return False, f"unknown parameter '{name}'"
+    if isinstance(value, bool) or not isinstance(value, (int, float)):
+        return False, f"{name} must be a number, got {type(value).__name__}"
+    if not math.isfinite(value):
+        return False, f"{name} must be finite, got {value}"
+    lo, hi = PARAM_RANGES[name]
+    if not (lo <= value <= hi):
+        return False, f"{name} must be in [{lo}, {hi}], got {value}"
+    return True, ""
+
+
+def compute_command(pose, linear_speed, turn_rate):
+    """
+    Pure function: turn the last pose into a Twist.
+
+    Without a pose returns zero. Otherwise uses given speed and turn rate.
     """
     cmd = Twist()
     if pose is None:
         return cmd
-
-    cmd.linear.x = 0.5
-    cmd.angular.z = 0.3
+    cmd.linear.x = float(linear_speed)
+    cmd.angular.z = float(turn_rate)
     return cmd
 
 
@@ -23,28 +50,56 @@ class PatrolNode(Node):
     def __init__(self):
         super().__init__('patrol')
 
-        # Подписка на позу (поле объекта — требование ТЗ)
+        self.declare_parameter('linear_speed', 0.5)
+        self.declare_parameter('turn_rate', 0.3)
+        self.declare_parameter('publish_hz', 10.0)
+
         self.pose_subscription = self.create_subscription(
-            Pose,
-            '/turtle1/pose',
-            self.pose_callback,
-            10,
-        )
+            Pose, '/turtle1/pose', self.pose_callback, 10)
         self.last_pose = None
 
-        # Издатель в ОТНОСИТЕЛЬНЫЙ топик 'cmd_vel' (дефект для стадии 2)
         self.cmd_publisher = self.create_publisher(Twist, 'cmd_vel', 10)
 
-        # Таймер 0.1 с
-        self.timer = self.create_timer(0.1, self.timer_callback)
+        self.timer = None
+        self._recreate_timer(self.get_parameter('publish_hz').value)
 
+        self.add_on_set_parameters_callback(self._on_set_parameters)
+
+    def _recreate_timer(self, hz):
+        if self.timer is not None:
+            self.timer.cancel()
+            self.destroy_timer(self.timer)
+            self.timer = None
+        self.timer = self.create_timer(1.0 / hz, self.timer_callback)
+        self.get_logger().info(
+            f"timer period = {1.0 / hz:.3f} s ({hz} Hz)")
+
+    def _on_set_parameters(self, params):
+        # Сначала валидация всех параметров без побочных эффектов.
+        '''for p in params:
+            ok, reason = validate_param(p.name, p.value)
+            if not ok:
+                self.get_logger().warn(
+                    f"rejected {p.name}={p.value}: {reason}")
+                return SetParametersResult(successful=False, reason=reason)
+'''
+        # Все значения допустимы — применяем изменения.
+        for p in params:
+            if p.name == 'publish_hz':
+                current = float(self.get_parameter('publish_hz').value)
+                if float(p.value) != current:
+                    self._recreate_timer(float(p.value))
+
+        return SetParametersResult(successful=True)
     def pose_callback(self, msg: Pose):
-        """Сохрани последнее сообщение."""
+        """Store the last pose."""
         self.last_pose = msg
 
     def timer_callback(self):
-        """Таймер публикует Twist, вычисленный чистой функцией."""
-        cmd = compute_command(self.last_pose)
+        """Publish a Twist built from the current parameters."""
+        linear = float(self.get_parameter('linear_speed').value)
+        turn = float(self.get_parameter('turn_rate').value)
+        cmd = compute_command(self.last_pose, linear, turn)
         self.cmd_publisher.publish(cmd)
 
 
