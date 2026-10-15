@@ -1,7 +1,7 @@
 ============================= test session starts ==============================
 platform linux -- Python 3.12.3, pytest-7.4.4, pluggy-1.4.0 -- /usr/bin/python3
 cachedir: .pytest_cache
-rootdir: /home/lev/ros2_course/src/patrol
+rootdir: /ros2_course/src/patrol
 plugins: ament-pep257-0.17.5, launch-testing-ros-0.26.12, ament-flake8-0.17.5, ament-copyright-0.17.5, ament-xmllint-0.17.5, launch-testing-3.4.11, ament-lint-0.17.5, colcon-core-0.21.2, cov-4.1.0
 collecting ... collected 2 items
 
