@@ -1,0 +1,6 @@
+[WARN] [1792134231.240370718] [rcl]: ROS_LOCALHOST_ONLY is deprecated but still honored if it is enabled. Use ROS_AUTOMATIC_DISCOVERY_RANGE and ROS_STATIC_PEERS instead.
+[WARN] [1792134231.240398668] [rcl]: 'localhost_only' is disabled, 'automatic_discovery_range' and 'static_peers' will be used.
+1792134231.240867 [42]       ros2: config: //CycloneDDS/Domain/General: 'NetworkInterfaceAddress': deprecated element (CYCLONEDDS_URI+160 line 1)
+1792134231.241206 [42]       ros2: selected interface "wt0" is not multicast-capable: disabling multicast
+[WARN] [1792134233.328574809] [_ros2cli_772]: New publisher discovered on topic '/robot_a/sensor_pose', offering incompatible QoS. No messages will be received from it. Last incompatible policy: RELIABILITY
+exit=124
