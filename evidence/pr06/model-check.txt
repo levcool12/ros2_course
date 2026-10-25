@@ -1,0 +1,56 @@
+# PR06 model-check: xacro expansion, check_urdf, tests (fixed / broken / fixed)
+
+## Fixed model (branch main): xacro -> check_urdf
+robot name is: course_ackermann
+---------- Successfully Parsed XML ---------------
+root Link: base_link has 7 child(ren)
+    child(1):  camera_link
+    child(2):  front_left_wheel_link
+    child(3):  front_right_wheel_link
+    child(4):  imu_link
+    child(5):  lidar_link
+    child(6):  rear_left_wheel_link
+    child(7):  rear_right_wheel_link
+
+## Fixed model: all structure + frame-contract tests
+........                                                                 [100%]
+8 passed in 0.12s
+
+cat: /tmp/broken-outputs.txt: No such file or directory
+
+## BROKEN branch pr06-broken-lidar: lidar_joint parent = camera_link
+
+### xacro + check_urdf on the broken model (structurally it still parses!)
+robot name is: course_ackermann
+---------- Successfully Parsed XML ---------------
+root Link: base_link has 6 child(ren)
+    child(1):  camera_link
+        child(1):  lidar_link
+    child(2):  front_left_wheel_link
+    child(3):  front_right_wheel_link
+    child(4):  imu_link
+
+### frame-contract test (expected FAIL: geometrically wrong tree)
+>           assert joint.find('parent').get('link') == parent, (
+                f"{name}: parent is "
+                f"{joint.find('parent').get('link')}, expected {parent}")
+E           AssertionError: lidar_joint: parent is camera_link, expected base_link
+E           assert 'camera_link' == 'base_link'
+E             - base_link
+E             + camera_link
+
+src/course_description/test/test_frames.py:46: AssertionError
+=========================== short test summary info ============================
+FAILED src/course_description/test/test_frames.py::test_expected_parents_and_children
+1 failed, 1 passed in 0.04s
+
+### live tf2_echo base_link lidar_link on the broken model (wrong: [0.4, 0, 0.22], expected [0, 0, 0.115])
+- Translation: [0.400, 0.000, 0.220]
+
+
+
+
+## After restoring parent=base_link on main, the same contract test is green again:
+
+    $ python3 -m pytest src/course_description/test/test_frames.py -q
+    2 passed in 0.03s

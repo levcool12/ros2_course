@@ -54,3 +54,16 @@
 - Обсуждение rosbag2, MCAP и QoS-override при replay.
 
 **Результат применения:** Рекомендации использованы как справочный материал; команды, вывод и файлы проверены вручную в WSL 2 с ROS 2 Jazzy. Сбой доставки при reliable-подписчике и восстановление после best_effort подтверждены реальным запуском и replay.
+
+## pr06: URDF/Xacro-описание робота, tf2 и QoS преобразований
+
+**Цель применения:** Проектирование пакета course_description: параметризованное URDF/Xacro-описание (REP-103, СИ), launch для robot_state_publisher, структурные тесты и контракт frames; сбор доказательств QoS tf_static.
+
+**Использованные ИИ-инструменты:** Агент-ассистент ZCode (GLM).
+
+**Основные типы запросов и решаемые задачи:**
+- Генерация vehicle.urdf.xacro (параметризация wheelbase/track/wheel_radius, инерции, visual/collision), launch-файла и тестов.
+- Подбор команд снятия QoS-доказательств (ros2 topic info/echo с --qos-durability transient_local|volatile).
+- Диагностика окружения WSL (vendoring xacro 2.0.12 и ackermann_msgs без sudo).
+
+**Результат применения:** Код собран и проверен запуском: colcon test 8 passed (course_description) и 343 passed vendored-зависимостей; tf-qos.txt показывает TRANSIENT_LOCAL=exit 0 / VOLATILE=exit 124; сломанный parent lidar_link воспроизведён на ветке pr06-broken-lidar (1 failed, tf2_echo [0.4, 0, 0.22]) и исправлен на main (2 passed). Все команды и выводы в evidence/pr06/.

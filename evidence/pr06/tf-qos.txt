@@ -1,0 +1,95 @@
+# PR06 tf/tf_static QoS evidence
+
+## topic info /tf_static --verbose
+Type: tf2_msgs/msg/TFMessage
+
+Publisher count: 1
+
+Node name: robot_state_publisher
+Node namespace: /
+Topic type: tf2_msgs/msg/TFMessage
+Topic type hash: RIHS01_e369d0f05a23ae52508854b66f6aa0437f3449d652e8cbf22d5abe85d020f087
+Endpoint type: PUBLISHER
+GID: 01.0f.67.28.15.02.04.56.00.00.00.00.00.00.15.03
+QoS profile:
+  Reliability: RELIABLE
+  History (Depth): UNKNOWN
+  Durability: TRANSIENT_LOCAL
+  Lifespan: Infinite
+  Deadline: Infinite
+  Liveliness: AUTOMATIC
+  Liveliness lease duration: Infinite
+
+Subscription count: 0
+
+
+## echo transient_local (late subscriber, matching profile)
+transforms:
+- header:
+    stamp:
+      sec: 1792944873
+      nanosec: 724078457
+    frame_id: base_link
+  child_frame_id: camera_link
+  transform:
+    translation:
+      x: 0.4
+      y: 0.0
+      z: 0.105
+    rotation:
+      x: 0.0
+      y: 0.0
+      z: 0.0
+      w: 1.0
+- header:
+    stamp:
+      sec: 1792944873
+      nanosec: 724078457
+    frame_id: base_link
+  child_frame_id: imu_link
+  transform:
+    translation:
+      x: 0.1
+      y: 0.0
+      z: 0.02
+    rotation:
+      x: 0.0
+      y: 0.0
+      z: 0.0
+      w: 1.0
+- header:
+    stamp:
+      sec: 1792944873
+      nanosec: 724078457
+    frame_id: base_link
+  child_frame_id: lidar_link
+  transform:
+    translation:
+      x: 0.0
+      y: 0.0
+      z: 0.11499999999999999
+    rotation:
+      x: 0.0
+      y: 0.0
+      z: 0.0
+      w: 1.0
+---
+exit=0
+
+## echo volatile (late subscriber, volatile durability)
+exit=124
+
+## Conclusion (tf vs tf_static profiles)
+
+robot_state_publisher offers tf_static as RELIABLE + TRANSIENT_LOCAL: the
+publisher keeps the last message, so the late transient_local subscriber
+received all three fixed transforms immediately (exit=0), while the same
+late subscriber with VOLATILE durability got nothing before the timeout
+(exit=124) - volatile gives no access to messages published in the past.
+
+The /tf topic is the opposite case: it is RELIABLE + VOLATILE. That is
+consistent with how the two streams differ: transforms of moving links
+are produced continuously, a stale sample is useless, so there is nothing
+to "latch" and a late subscriber simply takes the next live message.
+Fixed transforms are published once, so transient_local durability is
+what makes them available to every future subscriber.
