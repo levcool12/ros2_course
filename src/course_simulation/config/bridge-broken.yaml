@@ -1,0 +1,47 @@
+# PR07 stage 2: deliberately broken copy of bridge.yaml for the defect
+# demonstration. DO NOT use it to run the system; it exists so the
+# bridge-config test can prove it catches this defect class:
+#   - the IMU bridge direction is inverted (ROS_TO_GZ instead of GZ_TO_ROS)
+#     -> the ROS side would never receive /vehicle/imu data;
+#   - the drive command is routed to a misspelled Gazebo topic
+#     -> /model/course_ackermann/cmd_vel2 does not exist, the bridge still
+#        shows up as a ROS publisher, but no message reaches the model.
+#
+# The same defects reproduced live (with Gazebo installed) are diagnosed
+# with:  ros2 topic info -v /vehicle/imu   and   gz topic -i -t /model/course_ackermann/cmd_vel
+
+- ros_topic_name: "/vehicle/gz_cmd_vel"
+  gz_topic_name: "/model/course_ackermann/cmd_vel2"
+  ros_type_name: "geometry_msgs/msg/Twist"
+  gz_type_name: "gz.msgs.Twist"
+  direction: ROS_TO_GZ
+
+- ros_topic_name: "/vehicle/camera/image_raw"
+  gz_topic_name: "/model/course_ackermann/camera/image"
+  ros_type_name: "sensor_msgs/msg/Image"
+  gz_type_name: "gz.msgs.Image"
+  direction: GZ_TO_ROS
+
+- ros_topic_name: "/vehicle/scan"
+  gz_topic_name: "/model/course_ackermann/scan"
+  ros_type_name: "sensor_msgs/msg/LaserScan"
+  gz_type_name: "gz.msgs.LaserScan"
+  direction: GZ_TO_ROS
+
+- ros_topic_name: "/vehicle/imu"
+  gz_topic_name: "/model/course_ackermann/imu"
+  ros_type_name: "sensor_msgs/msg/Imu"
+  gz_type_name: "gz.msgs.Imu"
+  direction: ROS_TO_GZ
+
+- ros_topic_name: "/vehicle/odom_gz"
+  gz_topic_name: "/model/course_ackermann/odometry"
+  ros_type_name: "nav_msgs/msg/Odometry"
+  gz_type_name: "gz.msgs.Odometry"
+  direction: GZ_TO_ROS
+
+- ros_topic_name: "/clock"
+  gz_topic_name: "/clock"
+  ros_type_name: "rosgraph_msgs/msg/Clock"
+  gz_type_name: "gz.msgs.Clock"
+  direction: GZ_TO_ROS

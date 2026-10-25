@@ -1,0 +1,45 @@
+# PR07 ros_gz_bridge configuration (parameter_bridge --params-file).
+#
+# NOTE: the official course kit (models/worlds/config) was not available
+# in this environment; models, world and this bridge config are a
+# reconstruction that follows contracts/topics.md. Replace them with the
+# kit versions when available - topic names below then follow the kit.
+#
+# Contract topics stay absolute: /vehicle/..., /drive/safe, /clock.
+# Sensor data flows GZ -> ROS; the drive command flows ROS -> GZ.
+
+- ros_topic_name: "/vehicle/gz_cmd_vel"
+  gz_topic_name: "/model/course_ackermann/cmd_vel"
+  ros_type_name: "geometry_msgs/msg/Twist"
+  gz_type_name: "gz.msgs.Twist"
+  direction: ROS_TO_GZ
+
+- ros_topic_name: "/vehicle/camera/image_raw"
+  gz_topic_name: "/model/course_ackermann/camera/image"
+  ros_type_name: "sensor_msgs/msg/Image"
+  gz_type_name: "gz.msgs.Image"
+  direction: GZ_TO_ROS
+
+- ros_topic_name: "/vehicle/scan"
+  gz_topic_name: "/model/course_ackermann/scan"
+  ros_type_name: "sensor_msgs/msg/LaserScan"
+  gz_type_name: "gz.msgs.LaserScan"
+  direction: GZ_TO_ROS
+
+- ros_topic_name: "/vehicle/imu"
+  gz_topic_name: "/model/course_ackermann/imu"
+  ros_type_name: "sensor_msgs/msg/Imu"
+  gz_type_name: "gz.msgs.Imu"
+  direction: GZ_TO_ROS
+
+- ros_topic_name: "/vehicle/odom_gz"
+  gz_topic_name: "/model/course_ackermann/odometry"
+  ros_type_name: "nav_msgs/msg/Odometry"
+  gz_type_name: "gz.msgs.Odometry"
+  direction: GZ_TO_ROS
+
+- ros_topic_name: "/clock"
+  gz_topic_name: "/clock"
+  ros_type_name: "rosgraph_msgs/msg/Clock"
+  gz_type_name: "gz.msgs.Clock"
+  direction: GZ_TO_ROS
