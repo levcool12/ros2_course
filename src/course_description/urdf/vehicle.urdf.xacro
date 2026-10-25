@@ -144,7 +144,8 @@
     <xacro:cylinder_z_inertial mass="0.10" r="0.04" h="0.05"/>
   </link>
   <joint name="lidar_joint" type="fixed">
-    <parent link="base_link"/>
+    <!-- DEFECT (stage 2): lidar must hang off base_link, not camera_link. -->
+    <parent link="camera_link"/>
     <child link="lidar_link"/>
     <origin xyz="0.0 0.0 ${lidar_z}" rpy="0 0 0"/>
   </joint>
