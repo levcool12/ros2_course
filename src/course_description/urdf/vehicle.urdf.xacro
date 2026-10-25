@@ -1,0 +1,212 @@
+<?xml version="1.0"?>
+<!--
+  PR06: parameterized Ackermann vehicle description (URDF/Xacro).
+
+  Units: SI only (meters, kilograms, seconds). Axes follow REP-103:
+  +x forward, +y left, +z up.
+
+  base_link origin is at the geometric center of the chassis box.
+  When the wheels rest on the ground, base_link therefore sits at
+  height z = wheel_radius (wheel joints attach at z = 0 relative to it).
+
+  Tree (owners of every transform are listed in evidence/pr06/frames.md):
+    base_link -> camera_link   (fixed, tf_static, robot_state_publisher)
+    base_link -> lidar_link    (fixed, tf_static, robot_state_publisher)
+    base_link -> imu_link      (fixed, tf_static, robot_state_publisher)
+    base_link -> *_wheel_link  (continuous, tf; appears only when somebody
+                                publishes /joint_states)
+-->
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro" name="course_ackermann">
+
+  <!-- ================= Parameters (Xacro args, no magic numbers below) ============ -->
+  <!-- Override from command line or launch, e.g.:
+       xacro vehicle.urdf.xacro wheelbase:=0.9 track:=0.7 wheel_radius:=0.15 -->
+  <xacro:arg name="body_length"  default="0.9"/>   <!-- m, chassis box along x -->
+  <xacro:arg name="body_width"   default="0.5"/>   <!-- m, chassis box along y -->
+  <xacro:arg name="body_height"  default="0.15"/>  <!-- m, chassis box along z -->
+  <xacro:arg name="wheelbase"    default="0.8"/>   <!-- m, front vs rear axle; PR07 contract L = 0.8 -->
+  <xacro:arg name="track"        default="0.6"/>   <!-- m, wheel separation along y -->
+  <xacro:arg name="wheel_radius" default="0.12"/>  <!-- m -->
+  <xacro:arg name="wheel_width"  default="0.06"/>  <!-- m -->
+  <xacro:arg name="body_mass"    default="12.0"/>  <!-- kg -->
+  <xacro:arg name="wheel_mass"   default="1.0"/>   <!-- kg -->
+
+  <xacro:property name="body_length"  value="$(arg body_length)"/>
+  <xacro:property name="body_width"   value="$(arg body_width)"/>
+  <xacro:property name="body_height"  value="$(arg body_height)"/>
+  <xacro:property name="wheelbase"    value="$(arg wheelbase)"/>
+  <xacro:property name="track"        value="$(arg track)"/>
+  <xacro:property name="wheel_radius" value="$(arg wheel_radius)"/>
+  <xacro:property name="wheel_width"  value="$(arg wheel_width)"/>
+  <xacro:property name="body_mass"    value="$(arg body_mass)"/>
+  <xacro:property name="wheel_mass"   value="$(arg wheel_mass)"/>
+
+  <!-- Sensor mount offsets: named properties derived from chassis size.
+       The small constants are deliberate mount clearances, commented here. -->
+  <!-- camera: 0.05 m back from the nose, on top of the chassis -->
+  <xacro:property name="camera_x" value="${body_length / 2 - 0.05}"/>
+  <xacro:property name="camera_z" value="${body_height / 2 + 0.03}"/>
+  <!-- lidar: top center, sitting on the chassis roof -->
+  <xacro:property name="lidar_z"  value="${body_height / 2 + 0.04}"/>
+  <!-- imu: slightly forward of the geometric center, inside the chassis -->
+  <xacro:property name="imu_x"    value="0.10"/>
+  <xacro:property name="imu_z"    value="0.02"/>
+
+  <!-- ================= Materials ================= -->
+  <material name="chassis_blue"><color rgba="0.20 0.36 0.66 1.0"/></material>
+  <material name="wheel_black"><color rgba="0.08 0.08 0.08 1.0"/></material>
+  <material name="sensor_grey"><color rgba="0.55 0.55 0.58 1.0"/></material>
+
+  <!-- ================= Inertia helpers ================= -->
+  <!-- Solid box, axes-aligned, uniform density. -->
+  <xacro:macro name="box_inertial" params="mass lx ly lz">
+    <inertial>
+      <origin xyz="0 0 0" rpy="0 0 0"/>
+      <mass value="${mass}"/>
+      <inertia
+        ixx="${mass * (ly*ly + lz*lz) / 12.0}" ixy="0.0" ixz="0.0"
+        iyy="${mass * (lx*lx + lz*lz) / 12.0}" iyz="0.0"
+        izz="${mass * (lx*lx + ly*ly) / 12.0}"/>
+    </inertial>
+  </xacro:macro>
+
+  <!-- Solid cylinder with its axis along z (the link rotates the geometry
+       into place, the inertia tensor is expressed in the link frame). -->
+  <xacro:macro name="cylinder_z_inertial" params="mass r h">
+    <inertial>
+      <origin xyz="0 0 0" rpy="0 0 0"/>
+      <mass value="${mass}"/>
+      <inertia
+        ixx="${mass * (3*r*r + h*h) / 12.0}" ixy="0.0" ixz="0.0"
+        iyy="${mass * (3*r*r + h*h) / 12.0}" iyz="0.0"
+        izz="${mass * r*r / 2.0}"/>
+    </inertial>
+  </xacro:macro>
+
+  <!-- ================= Chassis ================= -->
+  <link name="base_link">
+    <visual>
+      <origin xyz="0 0 0" rpy="0 0 0"/>
+      <geometry>
+        <box size="${body_length} ${body_width} ${body_height}"/>
+      </geometry>
+      <material name="chassis_blue"/>
+    </visual>
+    <collision>
+      <origin xyz="0 0 0" rpy="0 0 0"/>
+      <geometry>
+        <box size="${body_length} ${body_width} ${body_height}"/>
+      </geometry>
+    </collision>
+    <xacro:box_inertial mass="${body_mass}"
+                         lx="${body_length}" ly="${body_width}" lz="${body_height}"/>
+  </link>
+
+  <!-- ================= Sensors ================= -->
+  <!-- Camera: small box at the front, +x looks forward (REP-103). -->
+  <link name="camera_link">
+    <visual>
+      <origin xyz="0 0 0" rpy="0 0 0"/>
+      <geometry>
+        <box size="0.04 0.08 0.05"/>
+      </geometry>
+      <material name="sensor_grey"/>
+    </visual>
+    <collision>
+      <origin xyz="0 0 0" rpy="0 0 0"/>
+      <geometry>
+        <box size="0.04 0.08 0.05"/>
+      </geometry>
+    </collision>
+    <xacro:box_inertial mass="0.05" lx="0.04" ly="0.08" lz="0.05"/>
+  </link>
+  <joint name="camera_joint" type="fixed">
+    <parent link="base_link"/>
+    <child link="camera_link"/>
+    <origin xyz="${camera_x} 0.0 ${camera_z}" rpy="0 0 0"/>
+  </joint>
+
+  <!-- Lidar: cylinder on the roof center. -->
+  <link name="lidar_link">
+    <visual>
+      <origin xyz="0 0 0" rpy="0 0 0"/>
+      <geometry>
+        <cylinder radius="0.04" length="0.05"/>
+      </geometry>
+      <material name="sensor_grey"/>
+    </visual>
+    <collision>
+      <origin xyz="0 0 0" rpy="0 0 0"/>
+      <geometry>
+        <cylinder radius="0.04" length="0.05"/>
+      </geometry>
+    </collision>
+    <xacro:cylinder_z_inertial mass="0.10" r="0.04" h="0.05"/>
+  </link>
+  <joint name="lidar_joint" type="fixed">
+    <parent link="base_link"/>
+    <child link="lidar_link"/>
+    <origin xyz="0.0 0.0 ${lidar_z}" rpy="0 0 0"/>
+  </joint>
+
+  <!-- IMU: tiny box near the center of mass, inside the chassis. -->
+  <link name="imu_link">
+    <visual>
+      <origin xyz="0 0 0" rpy="0 0 0"/>
+      <geometry>
+        <box size="0.03 0.03 0.02"/>
+      </geometry>
+      <material name="sensor_grey"/>
+    </visual>
+    <collision>
+      <origin xyz="0 0 0" rpy="0 0 0"/>
+      <geometry>
+        <box size="0.03 0.03 0.02"/>
+      </geometry>
+    </collision>
+    <xacro:box_inertial mass="0.02" lx="0.03" ly="0.03" lz="0.02"/>
+  </link>
+  <joint name="imu_joint" type="fixed">
+    <parent link="base_link"/>
+    <child link="imu_link"/>
+    <origin xyz="${imu_x} 0.0 ${imu_z}" rpy="0 0 0"/>
+  </joint>
+
+  <!-- ================= Wheels ================= -->
+  <!-- One wheel = link + continuous joint. The cylinder axis is z in URDF,
+       so rpy = pi/2 about x turns it into an axle along y. -->
+  <xacro:macro name="wheel" params="prefix x y">
+    <link name="${prefix}_wheel_link">
+      <visual>
+        <origin xyz="0 0 0" rpy="${pi / 2} 0 0"/>
+        <geometry>
+          <cylinder radius="${wheel_radius}" length="${wheel_width}"/>
+        </geometry>
+        <material name="wheel_black"/>
+      </visual>
+      <collision>
+        <origin xyz="0 0 0" rpy="${pi / 2} 0 0"/>
+        <geometry>
+          <cylinder radius="${wheel_radius}" length="${wheel_width}"/>
+        </geometry>
+      </collision>
+      <xacro:cylinder_z_inertial mass="${wheel_mass}"
+                                 r="${wheel_radius}" h="${wheel_width}"/>
+    </link>
+    <joint name="${prefix}_wheel_joint" type="continuous">
+      <parent link="base_link"/>
+      <child link="${prefix}_wheel_link"/>
+      <origin xyz="${x} ${y} 0.0" rpy="0 0 0"/>
+      <axis xyz="0 1 0"/>
+      <!-- effort/velocity limits keep the description physically meaningful;
+           position limits are not allowed for continuous joints. -->
+      <limit effort="50.0" velocity="50.0"/>
+    </joint>
+  </xacro:macro>
+
+  <xacro:wheel prefix="front_left"  x="${wheelbase / 2}"  y="${track / 2}"/>
+  <xacro:wheel prefix="front_right" x="${wheelbase / 2}"  y="${-track / 2}"/>
+  <xacro:wheel prefix="rear_left"   x="${-wheelbase / 2}" y="${track / 2}"/>
+  <xacro:wheel prefix="rear_right"  x="${-wheelbase / 2}" y="${-track / 2}"/>
+
+</robot>
