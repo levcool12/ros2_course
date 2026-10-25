@@ -1,0 +1,10 @@
+{
+  "commit": "3fa893b8d289253fe315998ca256bf9e32cd9ff5",
+  "public_tests_passed": true,
+  "defect_reproduced": true,
+  "defect_fixed": true,
+  "headless_verified": false,
+  "recording_verified": false,
+  "odometry_tf_owned": true,
+  "ai_used": true
+}

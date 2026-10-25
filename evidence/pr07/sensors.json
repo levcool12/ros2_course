@@ -1,0 +1,53 @@
+{
+  "note": "Declared values from the reconstructed model.sdf and contracts/topics.md. Measured frequencies, live QoS checks and the >=30 s recording require a running Gazebo (not installed in this environment - no sudo access); see README.md for the completion procedure.",
+  "sensors": [
+    {
+      "topic": "/vehicle/camera/image_raw",
+      "type": "sensor_msgs/msg/Image",
+      "frame_id": "camera_link",
+      "time_source": "simulation (/clock)",
+      "declared_rate_hz": 25,
+      "measured_rate_hz": null,
+      "qos": "sensor data (best effort, keep last)"
+    },
+    {
+      "topic": "/vehicle/scan",
+      "type": "sensor_msgs/msg/LaserScan",
+      "frame_id": "lidar_link",
+      "time_source": "simulation (/clock)",
+      "declared_rate_hz": 10,
+      "measured_rate_hz": null,
+      "qos": "sensor data (best effort, keep last)"
+    },
+    {
+      "topic": "/vehicle/imu",
+      "type": "sensor_msgs/msg/Imu",
+      "frame_id": "imu_link",
+      "time_source": "simulation (/clock)",
+      "declared_rate_hz": 100,
+      "measured_rate_hz": null,
+      "qos": "sensor data (best effort, keep last)"
+    },
+    {
+      "topic": "/vehicle/odom_gz",
+      "type": "nav_msgs/msg/Odometry",
+      "frame_id": "course_ackermann/odom (source) -> odom (adapter)",
+      "child_frame_id": "course_ackermann/base_link (source) -> base_link (adapter)",
+      "time_source": "simulation (/clock)",
+      "declared_rate_hz": 50,
+      "measured_rate_hz": null,
+      "qos": "reliable"
+    },
+    {
+      "topic": "/vehicle/odom",
+      "type": "nav_msgs/msg/Odometry",
+      "frame_id": "odom",
+      "child_frame_id": "base_link",
+      "time_source": "simulation (/clock, stamp preserved by adapter)",
+      "declared_rate_hz": 50,
+      "measured_rate_hz": null,
+      "qos": "reliable",
+      "owner_tf": "odom_adapter publishes the single dynamic tf odom->base_link"
+    }
+  ]
+}

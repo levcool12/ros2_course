@@ -1,0 +1,9 @@
+# PR07 colcon test (adapters + bridge config + workspace)
+
+## colcon test --packages-select course_simulation
+Finished <<< course_simulation [2.72s]
+
+Summary: 1 package finished [2.96s]
+
+## colcon test-result --verbose
+Summary: 363 tests, 0 errors, 0 failures, 52 skipped
