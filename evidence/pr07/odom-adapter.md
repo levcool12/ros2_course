@@ -37,14 +37,9 @@ twist (0.8 linear.x, 0.1 angular.z) and both covariances.
 Verified with: colcon test --packages-select course_simulation
 (363 tests, 0 failures across the workspace; see tests.txt).
 
-## Defect note (stage 2, structural reproduction)
+## Defect note (stage 2)
 
-The live reproduction (wrong IMU direction / misspelled cmd_vel topic in
-a bridge copy, diagnosed via ros2 topic info -v and gz topic -i) requires
-a running Gazebo, which is not installed in this environment (no sudo
-access). The defect class is reproduced structurally instead:
-config/bridge-broken.yaml contains both errors, and
-test_bridge_config.py::test_broken_copy_is_detected proves the validator
-catches them (IMU direction ROS_TO_GZ, cmd_vel routed to
-/model/course_ackermann/cmd_vel2). See evidence/pr07/README.md for the
-exact live procedure to finish once dependencies are installed.
+Reproduced LIVE with config/bridge-broken.yaml (inverted IMU direction + misspelled
+cmd_vel2 gz topic): /vehicle/imu visible in ros2 topic list but silent, gz-side IMU publisher
+healthy, bridge published commands into the void (no subscriber on cmd_vel2). Fixed by relaunching
+with config/bridge.yaml - IMU flowed again. Full transcript: evidence/pr07/bridge-defect.txt.

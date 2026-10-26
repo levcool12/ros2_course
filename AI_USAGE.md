@@ -80,3 +80,5 @@
 - Валидатор конфигурации моста, ловящий класс дефекта стадии 2 (неверное направление/топик).
 
 **Результат применения:** colcon test: 363 теста, 0 отказов; структурное воспроизведение дефекта и его обнаружение подтверждены test_bridge_config.py. Живые проверки (headless-запуск, запись >=30 c, измеренные частоты) не выполнены: в среде нет Gazebo и sudo — см. evidence/pr07/README.md с процедурой завершения. claims headless_verified/recording_verified честно выставлены false.
+
+**Дополнение к pr07 (живая часть):** отладка живого запуска — формат CLI-аргументов ros_gz_bridge 1.0.24 (topic@ros_type[dir]gz_type), реальные теги gz-sim8 AckermannSteering (left_joint/right_joint, odom_topic, frame_id), обязательный world-плагин gz-sim-imu-system для IMU, effort/velocity лимиты SDF-суставов. Всё проверено запуском: запись 40.56 с сим-времени, 7 топиков, путь команды и живой дефект моста.

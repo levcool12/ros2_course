@@ -1,0 +1,42 @@
+# PR07 stage-2 live defect: broken bridge config (bridge-broken.yaml)
+# Defects: IMU direction inverted (ROS_TO_GZ instead of GZ_TO_ROS),
+#          drive command routed to nonexistent gz topic cmd_vel2.
+
+## launch with broken config (headless)
+### bridge log: imu bridge direction and cmd_vel target
+[parameter_bridge-3] [INFO] [parameter_bridge]: Creating ROS->GZ Bridge: [/model/course_ackermann/cmd_vel2 (geometry_msgs/msg/Twist) -> /model/course_ackermann/cmd_vel2 (gz.msgs.Twist)] (Lazy 0)
+[parameter_bridge-3] [INFO] [parameter_bridge]: Creating GZ->ROS Bridge: [/model/course_ackermann/camera/image (gz.msgs.Image) -> /model/course_ackermann/camera/image (sensor_msgs/msg/Image)] (Lazy 0)
+[parameter_bridge-3] [INFO] [parameter_bridge]: Creating GZ->ROS Bridge: [/model/course_ackermann/scan (gz.msgs.LaserScan) -> /model/course_ackermann/scan (sensor_msgs/msg/LaserScan)] (Lazy 0)
+[parameter_bridge-3] [INFO] [parameter_bridge]: Creating ROS->GZ Bridge: [/model/course_ackermann/imu (sensor_msgs/msg/Imu) -> /model/course_ackermann/imu (gz.msgs.IMU)] (Lazy 0)
+[parameter_bridge-3] [INFO] [parameter_bridge]: Creating GZ->ROS Bridge: [/model/course_ackermann/odometry (gz.msgs.Odometry) -> /model/course_ackermann/odometry (nav_msgs/msg/Odometry)] (Lazy 0)
+[parameter_bridge-3] [INFO] [parameter_bridge]: Creating GZ->ROS Bridge: [/clock (gz.msgs.Clock) -> /clock (rosgraph_msgs/msg/Clock)] (Lazy 0)
+
+### ros2 topic list still shows /vehicle/imu (graph!), but:
+/vehicle/camera/image_raw
+/vehicle/gz_cmd_vel
+/vehicle/imu
+/vehicle/odom
+/vehicle/odom_gz
+/vehicle/scan
+
+### ros2 topic echo /vehicle/imu --once (4s timeout) -> silent
+exit=124 (timeout, no message)
+
+### gz side IMU publisher is alive and healthy:
+Publishers [Address, Message Type]:
+  tcp://172.26.253.30:38883, gz.msgs.IMU
+  tcp://172.26.253.30:36081, gz.msgs.IMU
+No subscribers on topic [/model/course_ackermann/imu]
+
+### command: adapter output exists in ROS, robot does NOT move (cmd_vel2)
+  x: 0.5
+gz cmd_vel2 subscribers (bridge publishes into the void):
+Publishers [Address, Message Type]:
+  tcp://172.26.253.30:38883, gz.msgs.Twist
+No subscribers on topic [/model/course_ackermann/cmd_vel2]
+
+## FIX: relaunch with config/bridge.yaml -> IMU flows again
+A message was lost!!!
+	total count change:1
+	total count: 1---
+exit=0 (message received)

@@ -1,0 +1,53 @@
+# PR07 headless launch evidence
+# Command:
+#   export GZ_SIM_RESOURCE_PATH="$PWD/src/course_simulation/models$\{GZ_SIM_RESOURCE_PATH:+:$GZ_SIM_RESOURCE_PATH\}"
+#   ros2 launch course_simulation simulation.launch.py world:=$PWD/src/course_simulation/worlds/mcity-minimal.sdf bridge_config:=$PWD/src/course_simulation/config/bridge.yaml headless:=true
+# (gz sim -s -r --headless-rendering, no GUI; launch stayed alive while checks ran)
+
+## bridge creation (from launch log)
+[parameter_bridge-3] [INFO] [parameter_bridge]: Creating ROS->GZ Bridge: [/model/course_ackermann/cmd_vel (geometry_msgs/msg/Twist) -> /model/course_ackermann/cmd_vel (gz.msgs.Twist)] (Lazy 0)
+[parameter_bridge-3] [INFO] [parameter_bridge]: Creating GZ->ROS Bridge: [/model/course_ackermann/camera/image (gz.msgs.Image) -> /model/course_ackermann/camera/image (sensor_msgs/msg/Image)] (Lazy 0)
+[parameter_bridge-3] [INFO] [parameter_bridge]: Creating GZ->ROS Bridge: [/model/course_ackermann/scan (gz.msgs.LaserScan) -> /model/course_ackermann/scan (sensor_msgs/msg/LaserScan)] (Lazy 0)
+[parameter_bridge-3] [INFO] [parameter_bridge]: Creating GZ->ROS Bridge: [/model/course_ackermann/imu (gz.msgs.IMU) -> /model/course_ackermann/imu (sensor_msgs/msg/Imu)] (Lazy 0)
+[parameter_bridge-3] [INFO] [parameter_bridge]: Creating GZ->ROS Bridge: [/model/course_ackermann/odometry (gz.msgs.Odometry) -> /model/course_ackermann/odometry (nav_msgs/msg/Odometry)] (Lazy 0)
+[parameter_bridge-3] [INFO] [parameter_bridge]: Creating GZ->ROS Bridge: [/clock (gz.msgs.Clock) -> /clock (rosgraph_msgs/msg/Clock)] (Lazy 0)
+
+## topics during run
+/clock
+/drive/safe
+/joint_states
+/parameter_events
+/robot_description
+/rosout
+/tf
+/tf_static
+/vehicle/camera/image_raw
+/vehicle/gz_cmd_vel
+/vehicle/imu
+/vehicle/odom
+/vehicle/odom_gz
+/vehicle/scan
+
+## /clock --once (simulation time alive)
+clock:
+  sec: 142
+  nanosec: 450000000
+---
+## command path live check (during /drive/safe speed=0.5)
+### /vehicle/gz_cmd_vel --once (adapter output)
+linear:
+  x: 0.5
+  y: 0.0
+  z: 0.0
+angular:
+  x: 0.0
+  y: 0.0
+  z: 0.0
+---
+### /vehicle/odom --once (moved position)
+    position:
+      x: -0.4127260622847436
+      y: -0.22521314750630278
+      z: 0.0
+### tf2_echo odom base_link (use_sim_time)
+- Translation: [0.214, -0.433, 0.000]

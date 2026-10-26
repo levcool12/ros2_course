@@ -11,16 +11,12 @@
   (inverted IMU direction, misspelled cmd_vel gz topic) is detected by
   test_bridge_config.py::test_broken_copy_is_detected.
 
-## What is blocked and why
+## Completion status
 
-This environment (WSL2 Ubuntu 24.04, ROS 2 Jazzy) has NO sudo access and
-NO Gazebo installed; the official course kit (.course-kit with the real
-models/worlds/bridge.yaml and check_practice.py) is absent. Therefore the
-live parts could not be executed honestly:
-  - headless.txt (live headless launch log),
-  - bag-info.txt + fixtures/pr07-sensors (>=30 s sim-time recording),
-  - measured frequencies in sensors.json,
-  - live defect diagnosis via ros2 topic info -v / gz topic -i.
+Live part completed in this environment (Gazebo Harmonic 8.15 installed, system ros-jazzy-xacro/ackermann-msgs):
+headless launch verified (headless.txt), command path /drive/safe -> adapter -> bridge -> gz -> odometry -> tf verified,
+defect of stage 2 reproduced live with bridge-broken.yaml and fixed (bridge-defect.txt), 40.56 s sim-time recording of all 7 topics
+in fixtures/pr07-sensors (bag-info.txt; kept locally for PR08, not committed).
 
 ## How to finish (once deps + kit are available)
 
@@ -62,5 +58,4 @@ live parts could not be executed honestly:
 
     python3 .course-kit/v1/tools/check_practice.py PR07 --submission .
 
-After that, update report.json (headless_verified, recording_verified ->
-true) and commit the new evidence.
+Completed: report.json headless_verified/recording_verified = true.
