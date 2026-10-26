@@ -1,10 +1,8 @@
-# Vendored build dependencies
+# Build dependencies note
 
-Upstream sources pinned inside the workspace because the local WSL
-environment has no sudo access to apt, and CI has no rosdep install of
-these packages. Remove them once the system packages are available.
+xacro and ackermann_msgs were temporarily vendored here (no sudo access
+at the time). Since commit 361f670 they come from the system packages:
 
-- `xacro/` — https://github.com/ros/xacro, tag 2.0.12 (ROS 2 Jazzy
-  release). Pure python, used to expand `course_description/urdf/*.xacro`.
-- `ackermann_msgs/` — https://github.com/ros-drivers/ackermann_msgs,
-  branch ros2 (commit 81a5f2d). Message definitions for PR07.
+    sudo apt install ros-jazzy-xacro ros-jazzy-ackermann-msgs
+
+This file is kept as a reminder; no vendored sources remain in src/.
