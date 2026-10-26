@@ -38,6 +38,10 @@ def generate_launch_description():
         }],
     )
 
+    # Saved RViz layout: RobotModel from /robot_description, TF markers,
+    # Fixed Frame = base_link (map/odom are not published in this package).
+    # Without it RViz opens with an empty grid only.
+    rviz_config = pkg_share / 'rviz' / 'vehicle.rviz'
     rviz_node = Node(
         package='rviz2',
         executable='rviz2',
@@ -45,6 +49,7 @@ def generate_launch_description():
         output='screen',
         condition=IfCondition(rviz),
         parameters=[{'use_sim_time': use_sim_time}],
+        arguments=['-d', str(rviz_config)],
     )
 
     return LaunchDescription([
