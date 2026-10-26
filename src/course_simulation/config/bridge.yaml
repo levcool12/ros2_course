@@ -29,7 +29,7 @@
 - ros_topic_name: "/vehicle/imu"
   gz_topic_name: "/model/course_ackermann/imu"
   ros_type_name: "sensor_msgs/msg/Imu"
-  gz_type_name: "gz.msgs.Imu"
+  gz_type_name: "gz.msgs.IMU"
   direction: GZ_TO_ROS
 
 - ros_topic_name: "/vehicle/odom_gz"
