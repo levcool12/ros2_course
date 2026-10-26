@@ -82,3 +82,15 @@
 **Результат применения:** colcon test: 363 теста, 0 отказов; структурное воспроизведение дефекта и его обнаружение подтверждены test_bridge_config.py. Живые проверки (headless-запуск, запись >=30 c, измеренные частоты) не выполнены: в среде нет Gazebo и sudo — см. evidence/pr07/README.md с процедурой завершения. claims headless_verified/recording_verified честно выставлены false.
 
 **Дополнение к pr07 (живая часть):** отладка живого запуска — формат CLI-аргументов ros_gz_bridge 1.0.24 (topic@ros_type[dir]gz_type), реальные теги gz-sim8 AckermannSteering (left_joint/right_joint, odom_topic, frame_id), обязательный world-плагин gz-sim-imu-system для IMU, effort/velocity лимиты SDF-суставов. Всё проверено запуском: запись 40.56 с сим-времени, 7 топиков, путь команды и живой дефект моста.
+
+## pr08: AMCL-локализация на записи ПР07
+
+**Цель применения:** Пакет localization_case: launch map_server+amcl+lifecycle_manager (одна команда, use_sim_time), измеритель сходимости по сим-времени (окно [t0+10, t0+30), 10 Гц lookup map→odom, медиана cov[0]+cov[7] /amcl_pose), дефект-профиль base_frame_id: chassis.
+
+**Использованные ИИ-инструменты:** Агент-ассистент ZCode (GLM).
+
+**Основные типы запросов и решаемые задачи:**
+- Проектирование измерителя (t0 по первому /clock, полузакрытый интервал, один lookup за тик, завершение по тишине player) и реконструкция AMCL-профиля по контракту ТЗ (kit недоступен).
+- Доведение записи ПР07 до контракта ПР08: gz_frame_id в SDF-сенсорах → header.frame_id = lidar_link/imu_link/camera_link, перезапись fixtures/pr07-sensors (37.1 c, 5 обязательных топиков).
+
+**Результат применения:** 11 юнит-тестов измерителя зелёные (окна от t0, ковариации, разбор профиля, дефект-фрейм); colcon test пакета проходит. Живой запуск AMCL и дефект не выполнялись: nav2-пакеты и course kit отсутствуют в среде — процедура завершения в evidence/pr08/README.md, claims defect_* честно false.
